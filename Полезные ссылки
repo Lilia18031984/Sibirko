@@ -1,0 +1,30 @@
+
+---
+
+## Инструкция по работе с Git
+
+```bash
+# Инициализация репозитория
+git init
+
+# Добавление файлов
+git add main.py .gitignore README.md requirements.txt
+
+# Создание коммита
+git commit -m "Initial commit: Movie Library v1.0"
+
+# Добавление удалённого репозитория
+git remote add origin https://github.com/your-username/movie-library.git
+
+# Отправка изменений
+git push -u origin main
+
+# Просмотр статуса
+git status
+
+# Просмотр истории коммитов
+git log --oneline --graph
+
+# Добавление тега версии
+git tag -a v1.0 -m "First stable release of Movie Library"
+git push origin v1.0
