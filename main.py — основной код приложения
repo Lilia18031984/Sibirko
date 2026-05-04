@@ -1,0 +1,617 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+import json
+import os
+from datetime import datetime
+
+class MovieLibrary:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Movie Library - Личная кинотека")
+        self.root.geometry("1100x700")
+        self.root.resizable(True, True)
+
+        # Файл для хранения фильмов
+        self.movies_file = "movies.json"
+        self.movies = self.load_movies()
+        
+        # Уникальные жанры
+        self.genres = self.get_unique_genres()
+        
+        # Создание интерфейса
+        self.create_widgets()
+        
+        # Отображение всех фильмов
+        self.display_movies()
+        self.update_stats()
+
+    def load_movies(self):
+        """Загрузка фильмов из JSON файла"""
+        default_movies = [
+            {
+                "title": "Побег из Шоушенка",
+                "genre": "Драма",
+                "year": 1994,
+                "rating": 9.5,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            {
+                "title": "Крёстный отец",
+                "genre": "Криминал",
+                "year": 1972,
+                "rating": 9.2,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            {
+                "title": "Тёмный рыцарь",
+                "genre": "Боевик",
+                "year": 2008,
+                "rating": 9.0,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            {
+                "title": "Криминальное чтиво",
+                "genre": "Криминал",
+                "year": 1994,
+                "rating": 8.9,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            {
+                "title": "Властелин колец: Возвращение короля",
+                "genre": "Фэнтези",
+                "year": 2003,
+                "rating": 9.0,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            {
+                "title": "Интерстеллар",
+                "genre": "Фантастика",
+                "year": 2014,
+                "rating": 8.6,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            {
+                "title": "Начало",
+                "genre": "Фантастика",
+                "year": 2010,
+                "rating": 8.8,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            {
+                "title": "Бойцовский клуб",
+                "genre": "Триллер",
+                "year": 1999,
+                "rating": 8.8,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            {
+                "title": "Форрест Гамп",
+                "genre": "Драма",
+                "year": 1994,
+                "rating": 8.9,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            },
+            {
+                "title": "Зелёная книга",
+                "genre": "Драма",
+                "year": 2018,
+                "rating": 8.5,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+        ]
+        
+        if os.path.exists(self.movies_file):
+            try:
+                with open(self.movies_file, 'r', encoding='utf-8') as f:
+                    movies = json.load(f)
+                    if movies:
+                        return movies
+            except:
+                pass
+        
+        self.save_movies(default_movies)
+        return default_movies
+
+    def save_movies(self):
+        """Сохранение фильмов в JSON файл"""
+        with open(self.movies_file, 'w', encoding='utf-8') as f:
+            json.dump(self.movies, f, indent=4, ensure_ascii=False)
+
+    def get_unique_genres(self):
+        """Получение уникальных жанров"""
+        genres = sorted(set(movie["genre"] for movie in self.movies))
+        return ["Все"] + genres
+
+    def create_widgets(self):
+        # Основной фрейм
+        main_frame = ttk.Frame(self.root, padding="15")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # ==================== Левая панель - Добавление фильма ====================
+        left_frame = ttk.LabelFrame(main_frame, text="Добавить фильм", padding="15")
+        left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 15))
+
+        # Поле Название
+        ttk.Label(left_frame, text="Название:", font=("Arial", 10, "bold")).pack(anchor=tk.W, pady=(0, 5))
+        self.title_entry = ttk.Entry(left_frame, width=35, font=("Arial", 10))
+        self.title_entry.pack(fill=tk.X, pady=(0, 15))
+
+        # Поле Жанр
+        ttk.Label(left_frame, text="Жанр:", font=("Arial", 10, "bold")).pack(anchor=tk.W, pady=(0, 5))
+        self.genre_entry = ttk.Entry(left_frame, width=35, font=("Arial", 10))
+        self.genre_entry.pack(fill=tk.X, pady=(0, 15))
+        
+        # Подсказка для жанра
+        ttk.Label(left_frame, text="Примеры: Драма, Комедия, Боевик, Фэнтези",
+                  font=("Arial", 8), foreground="gray").pack(anchor=tk.W, pady=(0, 15))
+
+        # Поле Год
+        ttk.Label(left_frame, text="Год выпуска (1888-2025):", font=("Arial", 10, "bold")).pack(anchor=tk.W, pady=(0, 5))
+        self.year_entry = ttk.Entry(left_frame, width=35, font=("Arial", 10))
+        self.year_entry.pack(fill=tk.X, pady=(0, 15))
+
+        # Поле Рейтинг
+        ttk.Label(left_frame, text="Рейтинг (0-10):", font=("Arial", 10, "bold")).pack(anchor=tk.W, pady=(0, 5))
+        self.rating_entry = ttk.Entry(left_frame, width=35, font=("Arial", 10))
+        self.rating_entry.pack(fill=tk.X, pady=(0, 20))
+
+        # Кнопки
+        self.add_btn = ttk.Button(left_frame, text="➕ Добавить фильм", command=self.add_movie, width=33)
+        self.add_btn.pack(pady=(0, 10))
+        
+        self.clear_btn = ttk.Button(left_frame, text="🗑 Очистить поля", command=self.clear_fields, width=33)
+        self.clear_btn.pack()
+
+        # Статистика
+        stats_frame = ttk.LabelFrame(left_frame, text="Статистика", padding="10")
+        stats_frame.pack(fill=tk.X, pady=(20, 0))
+        
+        self.total_label = ttk.Label(stats_frame, text="Фильмов: 0", font=("Arial", 10))
+        self.total_label.pack(anchor=tk.W, pady=2)
+        
+        self.avg_rating_label = ttk.Label(stats_frame, text="Средний рейтинг: 0", font=("Arial", 10))
+        self.avg_rating_label.pack(anchor=tk.W, pady=2)
+        
+        self.best_label = ttk.Label(stats_frame, text="Лучший рейтинг: 0", font=("Arial", 10))
+        self.best_label.pack(anchor=tk.W, pady=2)
+        
+        self.worst_label = ttk.Label(stats_frame, text="Худший рейтинг: 0", font=("Arial", 10))
+        self.worst_label.pack(anchor=tk.W, pady=2)
+
+        # ==================== Правая панель ====================
+        right_frame = ttk.Frame(main_frame)
+        right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+        # Панель фильтрации
+        filter_frame = ttk.LabelFrame(right_frame, text="Фильтрация", padding="10")
+        filter_frame.pack(fill=tk.X, pady=(0, 15))
+
+        # Фильтр по жанру
+        genre_filter_frame = ttk.Frame(filter_frame)
+        genre_filter_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        ttk.Label(genre_filter_frame, text="Фильтр по жанру:", font=("Arial", 10)).pack(side=tk.LEFT, padx=(0, 10))
+        self.genre_filter = ttk.Combobox(genre_filter_frame, values=self.genres, width=20, state="readonly")
+        self.genre_filter.set("Все")
+        self.genre_filter.pack(side=tk.LEFT)
+        self.genre_filter.bind("<<ComboboxSelected>>", lambda e: self.filter_movies())
+
+        # Фильтр по году
+        year_filter_frame = ttk.Frame(filter_frame)
+        year_filter_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        ttk.Label(year_filter_frame, text="Фильтр по году:", font=("Arial", 10)).pack(side=tk.LEFT, padx=(0, 10))
+        
+        ttk.Label(year_filter_frame, text="от:").pack(side=tk.LEFT, padx=(0, 5))
+        self.year_from = ttk.Entry(year_filter_frame, width=8)
+        self.year_from.pack(side=tk.LEFT, padx=(0, 10))
+        
+        ttk.Label(year_filter_frame, text="до:").pack(side=tk.LEFT, padx=(0, 5))
+        self.year_to = ttk.Entry(year_filter_frame, width=8)
+        self.year_to.pack(side=tk.LEFT)
+        
+        self.apply_year_btn = ttk.Button(year_filter_frame, text="Применить", command=self.filter_movies)
+        self.apply_year_btn.pack(side=tk.LEFT, padx=(10, 0))
+
+        # Кнопка сброса
+        self.reset_btn = ttk.Button(filter_frame, text="🔄 Сбросить фильтры", command=self.reset_filters)
+        self.reset_btn.pack(pady=(10, 0))
+
+        # Список жанров для быстрой фильтрации
+        quick_filter_frame = ttk.Frame(filter_frame)
+        quick_filter_frame.pack(fill=tk.X, pady=(10, 0))
+        ttk.Label(quick_filter_frame, text="Быстрые фильтры:", font=("Arial", 9)).pack(anchor=tk.W)
+        
+        quick_buttons_frame = ttk.Frame(quick_filter_frame)
+        quick_buttons_frame.pack(fill=tk.X, pady=(5, 0))
+        
+        for genre in ["Драма", "Комедия", "Боевик", "Фантастика", "Криминал"]:
+            if genre in self.genres:
+                btn = ttk.Button(quick_buttons_frame, text=genre, 
+                               command=lambda g=genre: self.quick_filter_genre(g))
+                btn.pack(side=tk.LEFT, padx=2)
+
+        # Таблица фильмов
+        table_frame = ttk.LabelFrame(right_frame, text="Список фильмов", padding="10")
+        table_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Создание таблицы
+        columns = ("title", "genre", "year", "rating", "added_date")
+        self.tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=15)
+        
+        self.tree.heading("title", text="Название")
+        self.tree.heading("genre", text="Жанр")
+        self.tree.heading("year", text="Год")
+        self.tree.heading("rating", text="Рейтинг (⭐)")
+        self.tree.heading("added_date", text="Дата добавления")
+        
+        self.tree.column("title", width=320)
+        self.tree.column("genre", width=120)
+        self.tree.column("year", width=80)
+        self.tree.column("rating", width=100)
+        self.tree.column("added_date", width=150)
+        
+        # Скроллбары
+        scroll_y = ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.tree.yview)
+        scroll_x = ttk.Scrollbar(table_frame, orient=tk.HORIZONTAL, command=self.tree.xview)
+        self.tree.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+        
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        scroll_y.grid(row=0, column=1, sticky="ns")
+        scroll_x.grid(row=1, column=0, sticky="ew")
+        
+        table_frame.grid_rowconfigure(0, weight=1)
+        table_frame.grid_columnconfigure(0, weight=1)
+        
+        # Кнопки управления
+        btn_frame = ttk.Frame(right_frame)
+        btn_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        self.delete_btn = ttk.Button(btn_frame, text="🗑 Удалить выбранный", command=self.delete_movie)
+        self.delete_btn.pack(side=tk.LEFT, padx=(0, 5))
+        
+        self.edit_btn = ttk.Button(btn_frame, text="✏ Редактировать выбранный", command=self.edit_movie)
+        self.edit_btn.pack(side=tk.LEFT, padx=(0, 5))
+        
+        self.export_btn = ttk.Button(btn_frame, text="💾 Экспорт в JSON", command=self.export_data)
+        self.export_btn.pack(side=tk.LEFT)
+        
+        # Статусная строка
+        self.status_var = tk.StringVar()
+        self.status_var.set("Готов к работе. Добро пожаловать в вашу кинотеку!")
+        status_bar = ttk.Label(self.root, textvariable=self.status_var, relief=tk.SUNKEN, anchor=tk.W)
+        status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+        
+        # Двойной клик для редактирования
+        self.tree.bind("<Double-1>", lambda e: self.edit_movie())
+
+    def validate_year(self, year_str):
+        """Проверка года"""
+        try:
+            year = int(year_str)
+            current_year = datetime.now().year
+            if 1888 <= year <= current_year + 5:  # +5 для будущих фильмов
+                return True, year
+            return False, None
+        except ValueError:
+            return False, None
+
+    def validate_rating(self, rating_str):
+        """Проверка рейтинга"""
+        try:
+            rating = float(rating_str)
+            if 0 <= rating <= 10:
+                return True, rating
+            return False, None
+        except ValueError:
+            return False, None
+
+    def add_movie(self):
+        """Добавление фильма"""
+        title = self.title_entry.get().strip()
+        genre = self.genre_entry.get().strip()
+        year_str = self.year_entry.get().strip()
+        rating_str = self.rating_entry.get().strip()
+        
+        # Валидация
+        if not title:
+            messagebox.showerror("Ошибка", "Введите название фильма!")
+            return
+        
+        if not genre:
+            messagebox.showerror("Ошибка", "Введите жанр!")
+            return
+        
+        valid_year, year = self.validate_year(year_str)
+        if not valid_year:
+            messagebox.showerror("Ошибка", "Год должен быть числом от 1888 до текущего года + 5!")
+            return
+        
+        valid_rating, rating = self.validate_rating(rating_str)
+        if not valid_rating:
+            messagebox.showerror("Ошибка", "Рейтинг должен быть числом от 0 до 10!")
+            return
+        
+        # Проверка дубликата
+        for movie in self.movies:
+            if movie["title"].lower() == title.lower() and movie["year"] == year:
+                if not messagebox.askyesno("Предупреждение", 
+                    f"Фильм '{title}' ({year}) уже существует в коллекции.\nДобавить как отдельную запись?"):
+                    return
+        
+        # Добавление
+        movie = {
+            "title": title,
+            "genre": genre,
+            "year": year,
+            "rating": rating,
+            "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        
+        self.movies.append(movie)
+        self.save_movies()
+        self.update_genres()
+        self.display_movies()
+        self.update_stats()
+        self.clear_fields()
+        
+        self.status_var.set(f"✔ Фильм '{title}' ({year}) добавлен в коллекцию")
+        messagebox.showinfo("Успех", f"Фильм '{title}' успешно добавлен!")
+
+    def display_movies(self, movies=None):
+        """Отображение фильмов в таблице"""
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+        
+        display_movies = movies if movies is not None else self.movies
+        
+        # Сортировка по году (новые сверху)
+        for movie in sorted(display_movies, key=lambda x: x["year"], reverse=True):
+            # Визуальное отображение рейтинга звёздочками
+            rating_stars = "⭐" * int(movie["rating"] // 1) + "½" if movie["rating"] % 1 >= 0.5 else ""
+            rating_display = f"{movie['rating']:.1f} {rating_stars}"
+            
+            self.tree.insert("", tk.END, values=(
+                movie["title"],
+                movie["genre"],
+                movie["year"],
+                rating_display,
+                movie["added_date"]
+            ))
+
+    def filter_movies(self):
+        """Фильтрация фильмов"""
+        selected_genre = self.genre_filter.get()
+        year_from_str = self.year_from.get().strip()
+        year_to_str = self.year_to.get().strip()
+        
+        filtered = self.movies.copy()
+        
+        # Фильтр по жанру
+        if selected_genre != "Все":
+            filtered = [m for m in filtered if m["genre"] == selected_genre]
+        
+        # Фильтр по году
+        if year_from_str:
+            valid, year_from = self.validate_year(year_from_str)
+            if valid:
+                filtered = [m for m in filtered if m["year"] >= year_from]
+            else:
+                messagebox.showerror("Ошибка", "Неверный формат года 'от'!")
+                return
+        
+        if year_to_str:
+            valid, year_to = self.validate_year(year_to_str)
+            if valid:
+                filtered = [m for m in filtered if m["year"] <= year_to]
+            else:
+                messagebox.showerror("Ошибка", "Неверный формат года 'до'!")
+                return
+        
+        self.display_movies(filtered)
+        self.update_stats(filtered)
+        
+        filter_info = []
+        if selected_genre != "Все":
+            filter_info.append(f"жанр: {selected_genre}")
+        if year_from_str:
+            filter_info.append(f"год ≥ {year_from_str}")
+        if year_to_str:
+            filter_info.append(f"год ≤ {year_to_str}")
+        
+        if filter_info:
+            self.status_var.set(f"🔍 Найдено {len(filtered)} фильмов ({', '.join(filter_info)})")
+        else:
+            self.status_var.set(f"📋 Всего фильмов: {len(filtered)}")
+
+    def quick_filter_genre(self, genre):
+        """Быстрый фильтр по жанру"""
+        self.genre_filter.set(genre)
+        self.filter_movies()
+
+    def reset_filters(self):
+        """Сброс фильтров"""
+        self.genre_filter.set("Все")
+        self.year_from.delete(0, tk.END)
+        self.year_to.delete(0, tk.END)
+        self.display_movies()
+        self.update_stats()
+        self.status_var.set("🔄 Фильтры сброшены. Показаны все фильмы")
+
+    def update_stats(self, movies=None):
+        """Обновление статистики"""
+        if movies is None:
+            movies = self.movies
+        
+        total = len(movies)
+        self.total_label.config(text=f"📊 Фильмов: {total}")
+        
+        if total > 0:
+            avg_rating = sum(m["rating"] for m in movies) / total
+            best_rating = max(m["rating"] for m in movies)
+            worst_rating = min(m["rating"] for m in movies)
+            
+            self.avg_rating_label.config(text=f"⭐ Средний рейтинг: {avg_rating:.2f}")
+            self.best_label.config(text=f"🏆 Лучший рейтинг: {best_rating:.1f}")
+            self.worst_label.config(text=f"📉 Худший рейтинг: {worst_rating:.1f}")
+        else:
+            self.avg_rating_label.config(text="⭐ Средний рейтинг: 0")
+            self.best_label.config(text="🏆 Лучший рейтинг: 0")
+            self.worst_label.config(text="📉 Худший рейтинг: 0")
+
+    def update_genres(self):
+        """Обновление списка жанров"""
+        self.genres = self.get_unique_genres()
+        self.genre_filter['values'] = self.genres
+
+    def delete_movie(self):
+        """Удаление фильма"""
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showwarning("Предупреждение", "Выберите фильм для удаления!")
+            return
+        
+        item = self.tree.item(selected[0])
+        values = item['values']
+        
+        for i, movie in enumerate(self.movies):
+            if movie["title"] == values[0] and movie["year"] == values[2]:
+                if messagebox.askyesno("Подтверждение", 
+                    f"Удалить фильм '{movie['title']}' ({movie['year']})?\nЭто действие нельзя отменить!"):
+                    deleted = self.movies.pop(i)
+                    self.save_movies()
+                    self.update_genres()
+                    self.display_movies()
+                    self.update_stats()
+                    self.reset_filters()
+                    self.status_var.set(f"🗑 Фильм '{deleted['title']}' удалён из коллекции")
+                    messagebox.showinfo("Успех", f"Фильм '{deleted['title']}' удалён!")
+                break
+
+    def edit_movie(self):
+        """Редактирование фильма"""
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showwarning("Предупреждение", "Выберите фильм для редактирования!")
+            return
+        
+        item = self.tree.item(selected[0])
+        values = item['values']
+        
+        for i, movie in enumerate(self.movies):
+            if movie["title"] == values[0] and movie["year"] == values[2]:
+                self.open_edit_window(movie, i)
+                break
+
+    def open_edit_window(self, movie, index):
+        """Окно редактирования"""
+        edit_window = tk.Toplevel(self.root)
+        edit_window.title(f"Редактирование: {movie['title']}")
+        edit_window.geometry("450", "420")
+        edit_window.resizable(False, False)
+        edit_window.transient(self.root)
+        edit_window.grab_set()
+        
+        # Центрирование окна
+        edit_window.update_idletasks()
+        x = (edit_window.winfo_screenwidth() // 2) - (450 // 2)
+        y = (edit_window.winfo_screenheight() // 2) - (420 // 2)
+        edit_window.geometry(f"450x420+{x}+{y}")
+        
+        ttk.Label(edit_window, text="Название:", font=("Arial", 10, "bold")).pack(pady=(15, 5))
+        title_edit = ttk.Entry(edit_window, width=45, font=("Arial", 10))
+        title_edit.insert(0, movie["title"])
+        title_edit.pack(pady=(0, 10))
+        
+        ttk.Label(edit_window, text="Жанр:", font=("Arial", 10, "bold")).pack(pady=(5, 5))
+        genre_edit = ttk.Entry(edit_window, width=45, font=("Arial", 10))
+        genre_edit.insert(0, movie["genre"])
+        genre_edit.pack(pady=(0, 10))
+        
+        ttk.Label(edit_window, text="Год выпуска:", font=("Arial", 10, "bold")).pack(pady=(5, 5))
+        year_edit = ttk.Entry(edit_window, width=45, font=("Arial", 10))
+        year_edit.insert(0, str(movie["year"]))
+        year_edit.pack(pady=(0, 10))
+        
+        ttk.Label(edit_window, text="Рейтинг (0-10):", font=("Arial", 10, "bold")).pack(pady=(5, 5))
+        rating_edit = ttk.Entry(edit_window, width=45, font=("Arial", 10))
+        rating_edit.insert(0, str(movie["rating"]))
+        rating_edit.pack(pady=(0, 20))
+        
+        def save():
+            new_title = title_edit.get().strip()
+            new_genre = genre_edit.get().strip()
+            new_year_str = year_edit.get().strip()
+            new_rating_str = rating_edit.get().strip()
+            
+            if not new_title:
+                messagebox.showerror("Ошибка", "Введите название фильма!")
+                return
+            
+            if not new_genre:
+                messagebox.showerror("Ошибка", "Введите жанр!")
+                return
+            
+            valid_year, new_year = self.validate_year(new_year_str)
+            if not valid_year:
+                messagebox.showerror("Ошибка", "Год должен быть числом от 1888 до текущего года + 5!")
+                return
+            
+            valid_rating, new_rating = self.validate_rating(new_rating_str)
+            if not valid_rating:
+                messagebox.showerror("Ошибка", "Рейтинг должен быть числом от 0 до 10!")
+                return
+            
+            self.movies[index] = {
+                "title": new_title,
+                "genre": new_genre,
+                "year": new_year,
+                "rating": new_rating,
+                "added_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            self.save_movies()
+            self.update_genres()
+            self.display_movies()
+            self.update_stats()
+            edit_window.destroy()
+            self.status_var.set(f"✏ Фильм '{new_title}' обновлён")
+            messagebox.showinfo("Успех", "Фильм успешно обновлён!")
+        
+        ttk.Button(edit_window, text="💾 Сохранить изменения", command=save).pack(pady=(10, 5))
+        ttk.Button(edit_window, text="❌ Отмена", command=edit_window.destroy).pack()
+
+    def export_data(self):
+        """Экспорт данных в отдельный JSON файл"""
+        from tkinter import filedialog
+        
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            initialfile=f"movies_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
+        
+        if filename:
+            try:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    json.dump(self.movies, f, indent=4, ensure_ascii=False)
+                self.status_var.set(f"💾 Данные экспортированы в {os.path.basename(filename)}")
+                messagebox.showinfo("Успех", f"Данные экспортированы!\n{filename}")
+            except Exception as e:
+                messagebox.showerror("Ошибка", f"Не удалось экспортировать данные\n{str(e)}")
+
+    def clear_fields(self):
+        """Очистка полей ввода"""
+        self.title_entry.delete(0, tk.END)
+        self.genre_entry.delete(0, tk.END)
+        self.year_entry.delete(0, tk.END)
+        self.rating_entry.delete(0, tk.END)
+        self.title_entry.focus()
+
+def main():
+    root = tk.Tk()
+    app = MovieLibrary(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
